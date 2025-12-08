@@ -1,0 +1,27 @@
+name: Deploy backend to Fly
+
+on:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      - name: Install flyctl
+        run: |
+          curl -L https://fly.io/install.sh | sh
+          sudo ln -sf $HOME/.fly/bin/flyctl /usr/local/bin/flyctl
+      - name: Authenticate Fly
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: |
+          flyctl auth token || true
+      - name: Deploy to Fly
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: |
+          flyctl deploy --config fly.toml --remote-only

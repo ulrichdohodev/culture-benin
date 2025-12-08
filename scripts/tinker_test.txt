@@ -1,0 +1,5 @@
+Region::create(['nom_region' => 'Region Test ' . uniqid(), 'description' => 'Test'])
+TypeMedia::create(['nom_type_media' => 'TypeMedia Test ' . uniqid(), 'description' => 'Test'])
+Region::count()
+TypeMedia::count()
+exit()
