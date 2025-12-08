@@ -81,3 +81,41 @@ npm run build
 Notes:
 - Si vous préférez Railway ou Render au lieu de Fly, je peux adapter le workflow CI/CD.
 - Pensez à ajouter `APP_KEY` dans Fly (ex: `php artisan key:generate --show`) et autres secrets.
+
+Déploiement sur Render et Railway
+---------------------------------
+
+Render (via Dockerfile)
+- Créez un compte sur Render et un nouveau service de type `Web Service`.
+- Sélectionnez `Docker` comme environnement et pointez le `Dockerfile` à la racine (`./Dockerfile`).
+- Branche: `main` (ou la branche que vous déployez)
+- Variables d'environnement et secrets à ajouter dans le dashboard Render:
+   - `APP_KEY` (secret)
+   - `DB_HOST`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` (secrets)
+   - `APP_ENV=production` (non-secret)
+   - `PORT=8080` (optionnel — le `Dockerfile` expose 8080)
+
+Exemple simplifié local (build image Docker puis tester):
+
+```pwsh
+docker build -t culture-benin:latest .
+docker run -p 8080:8080 --env APP_KEY="base64:..." --env DB_HOST="..." culture-benin:latest
+```
+
+Railway
+- Railway accepte les projets Docker ou une `Procfile`. Ce dépôt contient un `Dockerfile`, donc la manière la plus fiable est d'utiliser Docker.
+- Alternativement vous pouvez ajouter un `Procfile` à la racine pour que Railway utilise la commande de démarrage sans Docker (ex: `php artisan serve`).
+
+Procfile (exemple) :
+
+```
+web: php artisan serve --host=0.0.0.0 --port $PORT
+```
+
+- Dans Railway dashboard, ajoutez les variables d'environnement (secrets) `APP_KEY`, `DB_HOST`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`.
+- Pour une base PlanetScale, suivez la doc PlanetScale pour la configuration TLS et la chaîne de connexion.
+
+Remarques finales
+- Préférez Docker (present dans ce repo) pour un comportement identique en local et en production.
+- Si vous voulez, je peux générer un `render.yaml` (déclaratif) et ajouter des workflows GitHub Actions pour automatiser les déploiements vers Render ou Railway.
+

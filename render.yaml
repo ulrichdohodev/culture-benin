@@ -1,0 +1,27 @@
+# Render service configuration (example)
+# Replace <your-repo-url> with your repository URL or configure via Render dashboard.
+services:
+  - type: web
+    name: culture-benin-web
+    env: docker
+    repo: "https://github.com/<owner>/<repo>" # replace
+    branch: main
+    plan: free
+    dockerfilePath: ./Dockerfile
+    # If omitted, Render will use the image's CMD. Keep empty unless you need a custom start.
+    startCommand: ""
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: PORT
+        value: "8080"
+      - key: APP_KEY
+        secret: true
+      - key: DB_HOST
+        secret: true
+      - key: DB_DATABASE
+        secret: true
+      - key: DB_USERNAME
+        secret: true
+      - key: DB_PASSWORD
+        secret: true
