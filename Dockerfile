@@ -4,7 +4,7 @@ COPY composer.json composer.lock ./
 RUN composer install --no-dev --prefer-dist --no-interaction --no-scripts
 COPY . /app
 
-FROM php:8.1-cli
+FROM php:8.2-cli
 WORKDIR /var/www
 RUN apt-get update && apt-get install -y \
     git \
