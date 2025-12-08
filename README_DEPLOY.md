@@ -119,3 +119,14 @@ Remarques finales
 - Préférez Docker (present dans ce repo) pour un comportement identique en local et en production.
 - Si vous voulez, je peux générer un `render.yaml` (déclaratif) et ajouter des workflows GitHub Actions pour automatiser les déploiements vers Render ou Railway.
 
+Utiliser un fichier d'exemple pour Render
+----------------------------------------
+
+Un fichier d'exemple non secret est ajouté: `.env.render`. Il contient les variables d'environnement recommandées pour Render avec des placeholders pour les valeurs sensibles (ex: `APP_KEY`, `DB_PASSWORD`).
+
+Procédure recommandée:
+- Ne committez jamais vos secrets réels (`.env`) dans le dépôt.
+- Copiez les valeurs non sensibles depuis `.env.render` et collez les valeurs sensibles directement dans le dashboard Render: `Environment` → `Add Variable`.
+- Après avoir ajouté `APP_KEY`, `DB_HOST`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` dans Render, forcez un **Manual Deploy** de la branche `main`.
+
+
