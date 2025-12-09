@@ -30,7 +30,7 @@ RUN sed -i "s/listen = .*/listen = 9000/" /usr/local/etc/php-fpm.d/www.conf || t
 
 WORKDIR /var/www
 COPY --from=vendor /app /var/www
-COPY --from=assets /app/Front1/dist /var/www/public/build
+COPY --from=assets /app/Front1/public/build /var/www/public/build
 
 # nginx and supervisor configuration
 COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
