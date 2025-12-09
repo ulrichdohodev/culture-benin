@@ -1,27 +1,40 @@
-# Render service configuration (example)
-# Replace <your-repo-url> with your repository URL or configure via Render dashboard.
 services:
   - type: web
     name: culture-benin-web
     env: docker
-    repo: "https://github.com/ulrichdohodev/culture-benin"
+    repo: https://github.com/ulrichdohodev/culture-benin
     branch: main
     plan: free
+
     dockerfilePath: ./Dockerfile.render
-    # If omitted, Render will use the image's CMD. Keep empty unless you need a custom start.
-    startCommand: ""
+
     envVars:
       - key: APP_ENV
         value: production
+
+      - key: APP_NAME
+        value: CultureBenin
+
       - key: PORT
         value: "8080"
-      - key: APP_KEY
-        secret: true
+
+      - key: DB_CONNECTION
+        value: mysql
+
       - key: DB_HOST
-        secret: true
+        value: mysql.railway.internal
+
+      - key: DB_PORT
+        value: "3306"
+
       - key: DB_DATABASE
-        secret: true
+        value: railway
+
       - key: DB_USERNAME
-        secret: true
+        value: root
+
       - key: DB_PASSWORD
-        secret: true
+        sync: false   # sera ajouté manuellement sur Render
+
+      - key: APP_KEY
+        sync: false   # sera ajouté manuellement sur Render
