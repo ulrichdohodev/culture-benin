@@ -5,6 +5,9 @@ COPY composer.json composer.lock ./
 RUN composer install --no-dev --prefer-dist --no-interaction --no-scripts --optimize-autoloader
 COPY . /app
 
+RUN apk add --no-cache dos2unix \
+    && find . -type f -name "*.sh" -exec dos2unix {} \;
+
 # Étape 2 : Compiler les assets front (Vite)
 FROM node:18-alpine AS assets
 WORKDIR /app/Front1
