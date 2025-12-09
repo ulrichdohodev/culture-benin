@@ -43,8 +43,3 @@ ENV PORT=8080
 EXPOSE 8080
 
 CMD ["/usr/bin/supervisord", "-n"]
-
-RUN php artisan config:clear
-RUN php artisan cache:clear
-RUN php artisan view:clear
-
