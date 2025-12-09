@@ -25,12 +25,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
  && docker-php-ext-install pdo_mysql mbstring zip exif pcntl bcmath gd \
  && rm -rf /var/lib/apt/lists/*
 
-# ensure php-fpm listens on TCP 9000 so nginx can connect
+# Ensure php-fpm listens on TCP 9000 so nginx can connect
 RUN sed -i "s/listen = .*/listen = 9000/" /usr/local/etc/php-fpm.d/www.conf || true
 
 WORKDIR /var/www
 COPY --from=vendor /app /var/www
-COPY --from=assets /app/Front1/dist /var/www/public/build
+# Correction ici : le build Vite est dans public/build
+COPY --from=assets /app/Front1/public/build /var/www/public/build
 
 # nginx and supervisor configuration
 COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
