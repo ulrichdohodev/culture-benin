@@ -4,10 +4,10 @@ services:
   - type: web
     name: culture-benin-web
     env: docker
-    repo: "https://github.com/<owner>/<repo>" # replace
+    repo: "https://github.com/ulrichdohodev/culture-benin"
     branch: main
     plan: free
-    dockerfilePath: ./Dockerfile
+    dockerfilePath: ./Dockerfile.render
     # If omitted, Render will use the image's CMD. Keep empty unless you need a custom start.
     startCommand: ""
     envVars:
