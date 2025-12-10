@@ -1,24 +1,30 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -e  # Stoppe le script si une commande échoue
 
-echo "Starting deployment script"
+echo "==> Setting up directories and permissions..."
+mkdir -p /var/www/html/storage/logs \
+         /var/www/html/storage/framework/cache/data \
+         /var/www/html/storage/framework/views \
+         /var/www/html/bootstrap/cache
 
-# Composer
-composer install --no-dev --prefer-dist --optimize-autoloader
+chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Migrations (force en prod)
-php artisan migrate --force
+echo "==> Installing Composer dependencies..."
+composer install --no-dev --working-dir=/var/www/html --optimize-autoloader --no-interaction
 
-# Clear & cache config/routes/views
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
+echo "==> Running package discovery..."
+php /var/www/html/artisan package:discover
 
-# Storage symlink
-php artisan storage:link || true
+echo "==> Caching config..."
+php /var/www/html/artisan config:cache
 
-# Ensure permissions (adjust for your server user/group)
-chown -R www-data:www-data storage bootstrap/cache || true
-chmod -R 775 storage bootstrap/cache || true
+echo "==> Caching routes..."
+php /var/www/html/artisan route:cache
 
-echo "Deployment script finished"
+echo "==> Running migrations..."
+php /var/www/html/artisan migrate --force --seed
+
+echo "==> Deployment script finished."
+echo "==> Application is ready!"
+
+php -S 0.0.0.0:$PORT -t /var/www/html/public
