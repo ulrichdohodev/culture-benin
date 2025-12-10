@@ -1,30 +1,53 @@
-#!/usr/bin/env bash
-set -e  # Stoppe le script si une commande échoue
+#!/bin/bash
+set -e
 
-echo "==> Setting up directories and permissions..."
-mkdir -p /var/www/html/storage/logs \
-         /var/www/html/storage/framework/cache/data \
-         /var/www/html/storage/framework/views \
-         /var/www/html/bootstrap/cache
+echo "✅ Début du script Laravel"
 
-chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+# Variables
+APP_PATH=/var/www/html
+PUBLIC_PATH=$APP_PATH/public
+STORAGE_PATH=$APP_PATH/storage
 
-echo "==> Installing Composer dependencies..."
-composer install --no-dev --working-dir=/var/www/html --optimize-autoloader --no-interaction
+# Se placer dans le répertoire principal
+cd $APP_PATH
 
-echo "==> Running package discovery..."
-php /var/www/html/artisan package:discover
+# Installer les dépendances PHP si besoin (composer déjà dans l'image)
+if [ -f composer.json ] && [ "$SKIP_COMPOSER" != "1" ]; then
+    echo "📦 Installation des dépendances PHP..."
+    composer install --no-dev --optimize-autoloader
+fi
 
-echo "==> Caching config..."
-php /var/www/html/artisan config:cache
+# Vérifier et générer la clé d'application si elle n'existe pas
+if [ -z "$APP_KEY" ]; then
+    echo "🔑 Génération de la clé Laravel..."
+    php artisan key:generate
+fi
 
-echo "==> Caching routes..."
-php /var/www/html/artisan route:cache
+# Nettoyer caches et config
+echo "🧹 Nettoyage du cache..."
+php artisan config:clear
+php artisan cache:clear
+php artisan route:clear
+php artisan view:clear
 
-echo "==> Running migrations..."
-php /var/www/html/artisan migrate --force --seed
+# Optimiser la config et le cache
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
 
-echo "==> Deployment script finished."
-echo "==> Application is ready!"
+# Migrations
+echo "🗄️ Exécution des migrations..."
+php artisan migrate --force
 
-php -S 0.0.0.0:$PORT -t /var/www/html/public
+# Seeder langue (si nécessaire)
+if [ "$RUN_SEEDERS" == "1" ]; then
+    echo "🌐 Seeders en cours..."
+    php artisan db:seed --class=LangueSeeder
+fi
+
+# Permissions sur storage et bootstrap/cache
+echo "🔧 Ajustement des permissions..."
+chown -R www-data:www-data $STORAGE_PATH $APP_PATH/bootstrap/cache
+chmod -R 775 $STORAGE_PATH $APP_PATH/bootstrap/cache
+
+echo "✅ Script Laravel terminé"
