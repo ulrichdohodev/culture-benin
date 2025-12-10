@@ -1,47 +1,52 @@
-# Base image avec PHP + FPM + Nginx
+# -------------------------------------------------------
+# IMAGE DE BASE
+# -------------------------------------------------------
 FROM richarvey/nginx-php-fpm:3.1.6
 
-# Définir le répertoire de travail
-WORKDIR /var/www/html
-
-# Copier tout le backend Laravel
-COPY . /var/www/html
-
-# Installer les dépendances frontend et générer le build Vite
-# Si ton frontend est dans Front1
-WORKDIR /var/www/html/Front1
-RUN npm install
-RUN npm run build
-
-# Copier le build Vite vers le dossier public de Laravel
-RUN cp -r /var/www/html/Front1/public/build /var/www/html/public/build
-
-# Retour au répertoire principal
-WORKDIR /var/www/html
-
-# Copier le script de déploiement Laravel
-COPY 00-laravel-script.sh /00-laravel-script.sh
-
-# Configuration de l'image
-ENV SKIP_COMPOSER=1
-ENV WEBROOT=/var/www/html/public
-ENV PHP_ERRORS_STDERR=1
-ENV RUN_SCRIPTS=1
-ENV REAL_IP_HEADER=1
-
-# Configuration Laravel
+# -------------------------------------------------------
+# VARIABLES D'ENVIRONNEMENT
+# -------------------------------------------------------
 ENV APP_ENV=production
 ENV APP_DEBUG=false
 ENV LOG_CHANNEL=stderr
-
-# Autoriser composer à s’exécuter en root
+ENV WEBROOT=/var/www/html/public
+ENV PHP_ERRORS_STDERR=1
+ENV RUN_SCRIPTS=1
 ENV COMPOSER_ALLOW_SUPERUSER=1
+ENV RUN_SEEDERS=1   # active l'exécution du LangueSeeder
+ENV NODE_ENV=production
 
-# Rendre le script exécutable   
+# -------------------------------------------------------
+# COPIER LE CODE DE L'APPLICATION
+# -------------------------------------------------------
+COPY . /var/www/html
+
+# -------------------------------------------------------
+# COPIER LE SCRIPT DE DÉPLOIEMENT
+# -------------------------------------------------------
+COPY 00-laravel-script.sh /00-laravel-script.sh
 RUN chmod +x /00-laravel-script.sh
 
-# Exposer le port 8080 (celui de nginx)
-EXPOSE 8080
+# -------------------------------------------------------
+# INSTALLER LES DÉPENDANCES FRONT (Vite)
+# -------------------------------------------------------
+# Installer Node.js si l'image de base ne l'inclut pas
+RUN apt-get update && \
+    apt-get install -y curl build-essential && \
+    curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-get install -y nodejs && \
+    npm install -g npm@latest
 
-# Lancer le script Laravel puis démarrer Nginx + PHP-FPM
+# -------------------------------------------------------
+# INSTALLER LES DÉPENDANCES FRONT ET BUILD
+# -------------------------------------------------------
+WORKDIR /var/www/html
+RUN if [ -f package.json ]; then \
+        npm install && npm run build; \
+    fi
+
+# -------------------------------------------------------
+# COMMAND DE DÉMARRAGE
+# -------------------------------------------------------
+# Démarre le script Laravel puis Nginx+PHP-FPM
 CMD ["/bin/bash", "-c", "/00-laravel-script.sh && /start.sh"]
