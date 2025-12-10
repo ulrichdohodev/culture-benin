@@ -1,58 +1,28 @@
-# Étape 1 : Installer les dépendances PHP via Composer
-FROM composer:2 AS vendor
-WORKDIR /app
-COPY composer.json composer.lock ./
-RUN composer install --no-dev --prefer-dist --no-interaction --no-scripts --optimize-autoloader
-COPY . /app
+FROM richarvey/nginx-php-fpm:3.1.6
 
-RUN apk add --no-cache dos2unix \
-    && find . -type f -name "*.sh" -exec dos2unix {} \;
+# Copier le code de l'application
+COPY . /var/www/html
 
-# Étape 2 : Compiler les assets front (Vite)
-FROM node:18-alpine AS assets
-WORKDIR /app/Front1
-COPY Front1/package*.json ./
-RUN npm ci --silent
-COPY Front1/ ./
-RUN npm run build
+# Copier le script de déploiement
+COPY 00-laravel-script.sh /00-laravel-script.sh
 
-# Étape 3 : Image finale PHP + Nginx + supervisord
-FROM php:8.2-fpm
+# Image config
+ENV SKIP_COMPOSER 1
+ENV WEBROOT /var/www/html/public
+ENV PHP_ERRORS_STDERR 1
+ENV RUN_SCRIPTS 1
+ENV REAL_IP_HEADER 1
 
-# Installer les extensions et utilitaires nécessaires
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    nginx \
-    supervisor \
-    git \
-    unzip \
-    libpng-dev \
-    libonig-dev \
-    libxml2-dev \
-    libzip-dev \
-    zip \
- && docker-php-ext-install pdo_mysql mbstring zip exif pcntl bcmath gd \
- && rm -rf /var/lib/apt/lists/*
+# Laravel config
+ENV APP_ENV production
+ENV APP_DEBUG false
+ENV LOG_CHANNEL stderr
 
-# Configurer PHP-FPM pour écouter sur TCP
-RUN sed -i "s/listen = .*/listen = 9000/" /usr/local/etc/php-fpm.d/www.conf
+# Allow composer to run as root
+ENV COMPOSER_ALLOW_SUPERUSER 1
 
-# Copier le code Laravel et les assets compilés
-WORKDIR /var/www
-COPY --from=vendor /app /var/www
-COPY --from=assets /app/Front1/public/build /var/www/public/build
+# Rendre le script exécutable   
+RUN chmod +x /00-laravel-script.sh
 
-# Copier les configs Nginx et supervisord
-COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
-COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-
-# Permissions
-RUN chown -R www-data:www-data /var/www
-
-# Variables d'environnement
-ENV APP_ENV=production
-ENV PORT=8080
-
-EXPOSE 8080
-
-# Démarrage via supervisord
-CMD ["/usr/bin/supervisord", "-n"]
+# Exécuter le script au démarrage
+CMD ["/bin/bash", "-c", "/00-laravel-script.sh && /start.sh"]
