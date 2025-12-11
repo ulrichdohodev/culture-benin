@@ -1,53 +1,56 @@
 #!/bin/bash
 set -e
 
-echo "✅ Début du script Laravel"
+echo "==> Culture Benin - Deployment Script Starting..."
 
-# Variables
-APP_PATH=/var/www/html
-PUBLIC_PATH=$APP_PATH/public
-STORAGE_PATH=$APP_PATH/storage
+echo "==> Setting up directories and permissions..."
+mkdir -p /var/www/html/storage/logs \
+         /var/www/html/storage/framework/cache/data \
+         /var/www/html/storage/framework/sessions \
+         /var/www/html/storage/framework/views \
+         /var/www/html/storage/app/public \
+         /var/www/html/bootstrap/cache
 
-# Se placer dans le répertoire principal
-cd $APP_PATH
+chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+chown -R nginx:nginx /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Installer les dépendances PHP si besoin (composer déjà dans l'image)
-if [ -f composer.json ] && [ "$SKIP_COMPOSER" != "1" ]; then
-    echo "📦 Installation des dépendances PHP..."
-    composer install --no-dev --optimize-autoloader
+echo "==> Waiting for database to be ready..."
+max_tries=30
+count=0
+until php /var/www/html/artisan db:show 2>/dev/null || [ $count -eq $max_tries ]; do
+  echo "Database not ready yet... attempt $((count+1))/$max_tries"
+  count=$((count+1))
+  sleep 2
+done
+
+if [ $count -eq $max_tries ]; then
+  echo "WARNING: Could not connect to database after $max_tries attempts"
+  echo "Continuing anyway..."
 fi
 
-# Vérifier et générer la clé d'application si elle n'existe pas
+echo "==> Running package discovery..."
+php /var/www/html/artisan package:discover --ansi
+
 if [ -z "$APP_KEY" ]; then
-    echo "🔑 Génération de la clé Laravel..."
-    php artisan key:generate
+  echo "==> Generating APP_KEY..."
+  php /var/www/html/artisan key:generate --force
 fi
 
-# Nettoyer caches et config
-echo "🧹 Nettoyage du cache..."
-php artisan config:clear
-php artisan cache:clear
-php artisan route:clear
-php artisan view:clear
+echo "==> Optimizing application..."
+php /var/www/html/artisan config:cache
+php /var/www/html/artisan route:cache
+php /var/www/html/artisan view:cache
 
-# Optimiser la config et le cache
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
+echo "==> Running database migrations..."
+php /var/www/html/artisan migrate --force
 
-# Migrations
-echo "🗄️ Exécution des migrations..."
-php artisan migrate --force
+echo "==> Seeding database (if needed)..."
+php /var/www/html/artisan db:seed --force --class=RoleSeeder || echo "RoleSeeder already run"
+php /var/www/html/artisan db:seed --force --class=LangueSeeder || echo "LangueSeeder already run"
+php /var/www/html/artisan db:seed --force --class=RegionSeeder || echo "RegionSeeder already run"
 
-# Seeder langue (si nécessaire)
-if [ "$RUN_SEEDERS" == "1" ]; then
-    echo "🌐 Seeders en cours..."
-    php artisan db:seed --class=LangueSeeder
-fi
+echo "==> Creating storage link..."
+php /var/www/html/artisan storage:link || echo "Storage link already exists"
 
-# Permissions sur storage et bootstrap/cache
-echo "🔧 Ajustement des permissions..."
-chown -R www-data:www-data $STORAGE_PATH $APP_PATH/bootstrap/cache
-chmod -R 775 $STORAGE_PATH $APP_PATH/bootstrap/cache
-
-echo "✅ Script Laravel terminé"
+echo "==> Deployment script finished successfully!"
+echo "==> Culture Benin is ready to serve!"
