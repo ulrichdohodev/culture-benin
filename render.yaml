@@ -1,40 +1,85 @@
 services:
+  # Backend Laravel + Frontend
   - type: web
-    name: culture-benin-web
+    name: culture-benin
     env: docker
     repo: https://github.com/ulrichdohodev/culture-benin
     branch: main
     plan: free
-
+    region: oregon
     dockerfilePath: ./Dockerfile.render
-
+    healthCheckPath: /
+    
     envVars:
-      - key: APP_ENV
-        value: production
-
       - key: APP_NAME
         value: CultureBenin
-
+      
+      - key: APP_ENV
+        value: production
+      
+      - key: APP_DEBUG
+        value: false
+      
+      - key: APP_URL
+        sync: false  # Set to your Render URL: https://culture-benin.onrender.com
+      
+      - key: APP_KEY
+        sync: false  # Generate with: php artisan key:generate --show
+      
+      - key: LOG_CHANNEL
+        value: stderr
+      
+      - key: LOG_LEVEL
+        value: error
+      
       - key: PORT
         value: "8080"
-
+      
+      # Database Configuration (Railway MySQL)
       - key: DB_CONNECTION
         value: mysql
-
+      
       - key: DB_HOST
-        value: mysql.railway.internal
-
+        sync: false  # Railway MySQL host
+      
       - key: DB_PORT
-        value: "3306"
-
+        sync: false  # Railway MySQL port (usually 3306)
+      
       - key: DB_DATABASE
-        value: railway
-
+        sync: false  # Railway database name
+      
       - key: DB_USERNAME
-        value: root
-
+        sync: false  # Railway MySQL username
+      
       - key: DB_PASSWORD
-        sync: false   # sera ajouté manuellement sur Render
-
-      - key: APP_KEY
-        sync: false   # sera ajouté manuellement sur Render
+        sync: false  # Railway MySQL password
+      
+      # Session & Cache
+      - key: SESSION_DRIVER
+        value: database
+      
+      - key: SESSION_LIFETIME
+        value: "120"
+      
+      - key: CACHE_DRIVER
+        value: database
+      
+      - key: QUEUE_CONNECTION
+        value: database
+      
+      # Mail Configuration
+      - key: MAIL_MAILER
+        value: log
+      
+      - key: MAIL_FROM_ADDRESS
+        value: noreply@culture-benin.bj
+      
+      - key: MAIL_FROM_NAME
+        value: Culture Benin
+      
+      # Filesystem
+      - key: FILESYSTEM_DISK
+        value: local
+      
+      - key: BROADCAST_DRIVER
+        value: log
