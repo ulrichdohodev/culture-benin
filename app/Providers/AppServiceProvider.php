@@ -21,11 +21,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Configure view paths to use Front1/resources/views
-        $this->app['view']->addLocation(base_path('Front1/resources/views'));
-        
-        // Configure Vite to use Front1 directory
-        Vite::useHotFile(base_path('Front1/public/hot'))
+        // Use default resources/views; configure Vite for root public dir
+        Vite::useHotFile(base_path('public/hot'))
             ->useBuildDirectory('build');
         
         // Ensure the `role` middleware alias is registered (defensive).
