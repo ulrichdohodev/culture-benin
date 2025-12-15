@@ -1,3 +1,15 @@
+FROM node:22-alpine AS builder
+
+WORKDIR /app
+
+# Copy frontend files
+COPY package.json package-lock.json postcss.config.js tailwind.config.js vite.config.js ./
+COPY resources ./resources
+
+# Install and build frontend assets
+RUN npm install && npm run build
+
+# Stage final : Laravel + Nginx + PHP
 FROM richarvey/nginx-php-fpm:3.1.6
 
 WORKDIR /var/www/html
@@ -5,8 +17,8 @@ WORKDIR /var/www/html
 # Copier le code de l'application
 COPY . /var/www/html
 
-# Installer Node.js v22 pour builder le frontend (vite@7.x requiert Node >=20.19.0 ou >=22.12.0)
-RUN apk add --no-cache nodejs npm curl && curl -sL https://deb.nodesource.com/setup_22.x | bash - && apk del nodejs npm && apk add --no-cache nodejs npm
+# Copier les assets buildés depuis le stage builder
+COPY --from=builder /app/public/build /var/www/html/public/build
 
 # Configuration de l'image
 ENV SKIP_COMPOSER=1
@@ -23,9 +35,6 @@ ENV COMPOSER_ALLOW_SUPERUSER=1
 
 # Installer les dépendances PHP
 RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
-
-# Builder les assets frontend
-RUN npm install && npm run build
 
 # Permissions nécessaires
 RUN chown -R nginx:nginx /var/www/html \
