@@ -5,8 +5,8 @@ WORKDIR /var/www/html
 # Copier le code de l'application
 COPY . /var/www/html
 
-# Installer Node.js pour builder le frontend
-RUN apk add --no-cache nodejs npm
+# Installer Node.js v22 pour builder le frontend (vite@7.x requiert Node >=20.19.0 ou >=22.12.0)
+RUN apk add --no-cache nodejs npm curl && curl -sL https://deb.nodesource.com/setup_22.x | bash - && apk del nodejs npm && apk add --no-cache nodejs npm
 
 # Configuration de l'image
 ENV SKIP_COMPOSER=1
