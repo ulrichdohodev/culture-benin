@@ -51,5 +51,9 @@ php /var/www/html/artisan db:seed --force --class=RegionSeeder || echo "RegionSe
 echo "==> Creating storage link..."
 php /var/www/html/artisan storage:link || echo "Storage link already exists"
 
+echo "==> Configuring Nginx for Laravel routing..."
+cp /var/www/html/docker/nginx.conf /etc/nginx/sites-available/default.conf
+cp /var/www/html/docker/nginx.conf /etc/nginx/conf.d/default.conf
+
 echo "==> Deployment script finished successfully!"
 echo "==> Culture Benin is ready to serve!"
