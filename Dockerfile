@@ -24,7 +24,7 @@ COPY --from=builder /app/public/build /var/www/html/public/build
 ENV SKIP_COMPOSER=1
 ENV WEBROOT=/var/www/html/public
 ENV PHP_ERRORS_STDERR=1
-ENV RUN_SCRIPTS=1
+ENV RUN_SCRIPTS=0
 ENV REAL_IP_HEADER=1
 
 # Configuration Laravel (sans secrets embarqués)
