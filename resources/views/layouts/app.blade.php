@@ -13,6 +13,24 @@
   <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/logo.png') }}">
   <link rel="apple-touch-icon" href="{{ asset('images/logo.png') }}">
 
+  <!-- Tailwind CSS CDN for development -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'cb-green': {
+              DEFAULT: '#15803d',
+              dark: '#14532d',
+              light: '#16a34a'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
   @vite(['resources/css/app.css', 'resources/js/app.js'])
 
   <style>
