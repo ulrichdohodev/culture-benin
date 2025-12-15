@@ -1,29 +1,43 @@
 FROM richarvey/nginx-php-fpm:3.1.6
 
+WORKDIR /var/www/html
+
 # Copier le code de l'application
 COPY . /var/www/html
 
-# Copier le script de déploiement
-COPY 00-laravel-script.sh /00-laravel-script.sh
+# Installer Node.js pour builder le frontend
+RUN apk add --no-cache nodejs npm
 
-# Image config
+# Configuration de l'image
 ENV SKIP_COMPOSER=1
 ENV WEBROOT=/var/www/html/public
 ENV PHP_ERRORS_STDERR=1
 ENV RUN_SCRIPTS=1
 ENV REAL_IP_HEADER=1
 
-# Laravel config
+# Configuration Laravel (sans secrets embarqués)
 ENV APP_ENV=production
 ENV APP_DEBUG=false
 ENV LOG_CHANNEL=stderr
-ENV APP_KEY="base64:xWAEZAIi3mvYfCNZVL09TWUrTKJstc8AGIlvU37SbdA="
-
-# Allow composer to run as root
 ENV COMPOSER_ALLOW_SUPERUSER=1
 
-# Rendre le script exécutable   
+# Installer les dépendances PHP
+RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+
+# Builder les assets frontend
+RUN npm install && npm run build
+
+# Permissions nécessaires
+RUN chown -R nginx:nginx /var/www/html \
+	&& chmod -R 755 /var/www/html/storage \
+	&& chmod -R 755 /var/www/html/bootstrap/cache
+
+# Copier le script de déploiement
+COPY 00-laravel-script.sh /00-laravel-script.sh
 RUN chmod +x /00-laravel-script.sh
 
-# Exécuter le script au démarrage
+# Exposer le port
+EXPOSE 8080
+
+# Démarrage : script Laravel puis entrypoint de l'image
 CMD ["/bin/bash", "-c", "/00-laravel-script.sh && /start.sh"]
