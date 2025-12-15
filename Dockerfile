@@ -46,7 +46,7 @@ COPY 00-laravel-script.sh /00-laravel-script.sh
 RUN chmod +x /00-laravel-script.sh
 
 # Remplacer la config Nginx par défaut par notre template compatible Laravel
-COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
+COPY docker/nginx.conf /etc/nginx/sites-available/default.conf
 
 # Exposer le port
 EXPOSE 8080
