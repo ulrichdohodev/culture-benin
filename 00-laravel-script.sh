@@ -35,7 +35,6 @@ if [ -z "$APP_KEY" ]; then
   echo "==> Generating APP_KEY..."
   php /var/www/html/artisan key:generate --force
 fi
-
 echo "==> Optimizing application..."
 php /var/www/html/artisan config:cache
 php /var/www/html/artisan route:cache
