@@ -21,7 +21,6 @@ COPY . /var/www/html
 COPY --from=builder /app/public/build /var/www/html/public/build
 
 # Configuration de l'image
-ENV SKIP_COMPOSER=1
 ENV WEBROOT=/var/www/html/public
 ENV PHP_ERRORS_STDERR=1
 ENV RUN_SCRIPTS=0
@@ -44,9 +43,6 @@ RUN chown -R nginx:nginx /var/www/html \
 # Copier le script de déploiement
 COPY 00-laravel-script.sh /00-laravel-script.sh
 RUN chmod +x /00-laravel-script.sh
-
-# Remplacer la config Nginx par défaut par notre template compatible Laravel
-COPY docker/nginx.conf /etc/nginx/sites-available/default.conf
 
 # Exposer le port
 EXPOSE 8080
