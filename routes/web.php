@@ -21,6 +21,11 @@ use App\Models\Region;
 use App\Models\Langue;
 use App\Models\Utilisateur;
 
+// Health check endpoint for Render
+Route::get('/healthz', function () {
+    return response('OK', 200);
+});
+
 Route::get('/', function () {
     try {
         // Contenus approuvés récents
