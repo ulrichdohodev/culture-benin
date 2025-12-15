@@ -44,6 +44,10 @@ RUN chown -R nginx:nginx /var/www/html \
 COPY 00-laravel-script.sh /00-laravel-script.sh
 RUN chmod +x /00-laravel-script.sh
 
+# Forcer la configuration Nginx Laravel (root + try_files)
+COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
+COPY docker/nginx.conf /etc/nginx/sites-enabled/default.conf
+
 # Exposer le port
 EXPOSE 8080
 
